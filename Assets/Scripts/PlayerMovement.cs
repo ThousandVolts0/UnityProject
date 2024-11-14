@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         Rigidbody.velocity = new Vector2(moveInput * speed, Rigidbody.velocity.y);
 
-        if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.W) && isGrounded)
+        if (Input.GetButtonDown("Jump") && isGrounded || Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
             Rigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
