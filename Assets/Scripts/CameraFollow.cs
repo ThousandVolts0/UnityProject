@@ -8,9 +8,20 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float topLimit;
     [SerializeField] private float bottomLimit;
 
+    /*
+     * Left -4.15
+     * Right 10.25
+     * Top -1.65
+     * Bottom -1.65
+     * 
+     * Left2
+     * Right2
+     * Top2
+     * Bottom2
+     */
+
     // Reference to the player object for camera tracking
     public Transform player;
-    public float timeOffset;
     public Vector2 positionOffset;
 
     void Update()
