@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -12,9 +13,11 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D Rigidbody;
     private bool isGrounded;
 
+    public LayerMask groundLayer;
+
     void Start()
     {
-        Rigidbody = GetComponent<Rigidbody2D>();   
+        Rigidbody = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -23,29 +26,21 @@ public class PlayerMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         Rigidbody.velocity = new Vector2(moveInput * speed, Rigidbody.velocity.y);
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W))
+        if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
-            if (isGrounded)
-            {
-                Rigidbody.velocity = new Vector2(Rigidbody.velocity.x, jumpForce);
-            }
+            Rigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void FixedUpdate()
     {
-        if (collision.gameObject.tag == "Ground")
-        {
-            isGrounded = true;
-        }
+        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.35f, groundLayer);
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    private void OnDrawGizmos()
     {
-        if (collision.gameObject.tag == "Ground")
-        {
-            isGrounded = false;
-        }
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * 0.35f);
     }
- 
+
 }
