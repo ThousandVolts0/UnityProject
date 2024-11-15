@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         Rigidbody.velocity = new Vector2(moveInput * speed, Rigidbody.velocity.y);
 
-        if (Input.GetButtonDown("Jump") && isGrounded || Input.GetKeyDown(KeyCode.W) && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded || Input.GetKeyDown(KeyCode.W) && isGrounded)
         {
             Rigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
@@ -42,5 +42,4 @@ public class PlayerMovement : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * 0.35f);
     }
-
 }

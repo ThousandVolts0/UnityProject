@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -8,7 +9,9 @@ public class Gun : MonoBehaviour
     public GameObject Player;
     public GameObject bulletPrefab;
     public GameObject bulletMuzzleFlash;
-    public GameObject gunLimitedSpace;
+    public GameObject BoundsLeft;
+    public GameObject BoundsRight;
+    public GameObject BoundsTop;
 
     [Range(0f, 1000f)] public float bulletSpeed = 10f;
     [Range(0f, 10f)] public float gunCooldown = 0.5f;
@@ -31,21 +34,40 @@ public class Gun : MonoBehaviour
         mousePosition.z = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
         mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
-        // Get the PolygonCollider2D on gunLimitedSpace
-        PolygonCollider2D polygonCollider = gunLimitedSpace.GetComponent<PolygonCollider2D>();
+        Vector2[] Left = BoundsLeft.GetComponent<PolygonCollider2D>().points;
+        Vector2[] Right = BoundsRight.GetComponent<PolygonCollider2D>().points;
+        Vector2[] Top = BoundsTop.GetComponent<PolygonCollider2D>().points;
 
-        if (polygonCollider != null)
+
+
+        Vector2 closestPointLeft = Left.ClosestPoint(mousePosition);
+
+
+        Vector2 closestPointRight = Right.ClosestPoint(mousePosition);
+        Vector2 closestPointTop = Top.ClosestPoint(mousePosition);
+
+        float distancePointLeft  = Vector2.Distance(mousePosition, closestPointLeft);
+        float distancePointRight = Vector2.Distance(mousePosition, closestPointRight);
+        float distancePointTop = Vector2.Distance(mousePosition, closestPointTop);
+
+        float minDistance = Mathf.Min(distancePointLeft, distancePointRight, distancePointTop);
+        Vector2 direction = (mousePosition - transform.position).normalized;
+
+        if (minDistance == distancePointLeft)
         {
-            // Find the closest point on the polygon's edge to the mouse position
-            Vector2 closestPoint = polygonCollider.ClosestPoint(mousePosition);
-
-            // Set the gun's position to this closest point on the edge
-            transform.position = closestPoint;
-
-            // Rotate the gun to face the mouse direction
-            Vector2 direction = (mousePosition - transform.position).normalized;
-            transform.up = direction;
+            mousePosition = closestPointLeft;
         }
+        else if (minDistance == distancePointRight)
+        {
+            mousePosition = closestPointRight;
+        }
+        else if (minDistance == distancePointTop)
+        {
+            mousePosition = closestPointTop;
+        }
+
+        transform.position = mousePosition;
+        transform.up = direction;
     }
 
 
