@@ -8,6 +8,7 @@ public class Gun : MonoBehaviour
     public GameObject Player;
     public GameObject bulletPrefab;
     public GameObject bulletMuzzleFlash;
+    public GameObject gunLimitedSpace;
 
     [Range(0f, 1000f)] public float bulletSpeed = 10f;
     [Range(0f, 10f)] public float gunCooldown = 0.5f;
@@ -28,28 +29,27 @@ public class Gun : MonoBehaviour
     {
         Vector3 mousePosition = Input.mousePosition;
         mousePosition.z = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
-
         mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
-        Vector2 direction = new Vector2(
-            mousePosition.x - transform.position.x,
-            mousePosition.y - transform.position.y
-        );
+        // Get the PolygonCollider2D on gunLimitedSpace
+        PolygonCollider2D polygonCollider = gunLimitedSpace.GetComponent<PolygonCollider2D>();
 
-        if (transform.eulerAngles.z < 360 && transform.eulerAngles.z > 180)
+        if (polygonCollider != null)
         {
-            gunOffset = 0.25f;
-        }
-        else
-        {
-            gunOffset = -0.25f;
-        }
+            // Find the closest point on the polygon's edge to the mouse position
+            Vector2 closestPoint = polygonCollider.ClosestPoint(mousePosition);
 
-        transform.up = direction;
-        transform.position = new Vector3(Player.transform.position.x + gunOffset, Player.transform.position.y, Player.transform.position.z);
+            // Set the gun's position to this closest point on the edge
+            transform.position = closestPoint;
 
-            
+            // Rotate the gun to face the mouse direction
+            Vector2 direction = (mousePosition - transform.position).normalized;
+            transform.up = direction;
+        }
     }
+
+
+
 
     IEnumerator cloneBullet()
     {
