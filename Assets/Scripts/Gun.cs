@@ -1,8 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
+using static UnityEditor.FilePathAttribute;
 
 public class Gun : MonoBehaviour
 {
@@ -19,6 +23,10 @@ public class Gun : MonoBehaviour
     private bool hasCooldown = false;
     private float gunOffset = 0;
 
+    private float[] distanceLeftArray;
+    private float[] distanceRightArray;
+    private float[] distanceTopArray;
+
     void Update()
     {
         faceMouse();
@@ -26,6 +34,13 @@ public class Gun : MonoBehaviour
         {
             StartCoroutine(cloneBullet());
         }
+    }
+
+    private void Start()
+    {
+        distanceLeftArray = new float[BoundsLeft.GetComponent<PolygonCollider2D>().points.Length];
+        distanceRightArray = new float[BoundsRight.GetComponent<PolygonCollider2D>().points.Length];
+        distanceTopArray = new float[BoundsTop.GetComponent<PolygonCollider2D>().points.Length];
     }
 
     void faceMouse()
@@ -38,40 +53,48 @@ public class Gun : MonoBehaviour
         Vector2[] Right = BoundsRight.GetComponent<PolygonCollider2D>().points;
         Vector2[] Top = BoundsTop.GetComponent<PolygonCollider2D>().points;
 
+        for (int i = 0; i < Left.Length; i++)
+        {
+            distanceLeftArray[i] = Vector2.Distance(mousePosition, BoundsLeft.transform.TransformPoint(Left[i]));
+        }
 
+        for (int i = 0; i < Right.Length; i++)
+        {
+            distanceRightArray[i] = Vector2.Distance(mousePosition, BoundsRight.transform.TransformPoint(Right[i]));
+        }
 
-        Vector2 closestPointLeft = Left.ClosestPoint(mousePosition);
+        for (int i = 0; i < Top.Length; i++)
+        {
+            distanceTopArray[i] = Vector2.Distance(mousePosition, BoundsTop.transform.TransformPoint(Top[i]));
+        }
 
+        Vector2 closestPointLeft = Left[Array.IndexOf(distanceLeftArray, distanceLeftArray.Min())];
+        Vector2 closestPointRight = Right[Array.IndexOf(distanceRightArray, distanceRightArray.Min())];
+        Vector2 closestPointTop = Top[Array.IndexOf(distanceTopArray, distanceTopArray.Min())];
 
-        Vector2 closestPointRight = Right.ClosestPoint(mousePosition);
-        Vector2 closestPointTop = Top.ClosestPoint(mousePosition);
+        float minDistance = Mathf.Min(distanceLeftArray.Min(), distanceRightArray.Min(), distanceTopArray.Min());
 
-        float distancePointLeft  = Vector2.Distance(mousePosition, closestPointLeft);
-        float distancePointRight = Vector2.Distance(mousePosition, closestPointRight);
-        float distancePointTop = Vector2.Distance(mousePosition, closestPointTop);
-
-        float minDistance = Mathf.Min(distancePointLeft, distancePointRight, distancePointTop);
+        if (minDistance == distanceLeftArray.Min())
+        {
+            //transform.position = BoundsLeft.transform.TransformPoint(closestPointLeft);
+            transform.position = Vector2.Lerp(transform.position, BoundsLeft.transform.TransformPoint(closestPointLeft), 0.3f);
+        }
+        else if (minDistance == distanceRightArray.Min())
+        {
+            //transform.position = BoundsRight.transform.TransformPoint(closestPointRight);
+            transform.position = Vector2.Lerp(transform.position, BoundsRight.transform.TransformPoint(closestPointRight), 0.3f);
+        }
+        else if (minDistance == distanceTopArray.Min())
+        {
+            //transform.position = BoundsTop.transform.TransformPoint(closestPointTop);
+            transform.position = Vector2.Lerp(transform.position, BoundsTop.transform.TransformPoint(closestPointTop), 0.3f);
+        }
+        
+       
         Vector2 direction = (mousePosition - transform.position).normalized;
-
-        if (minDistance == distancePointLeft)
-        {
-            mousePosition = closestPointLeft;
-        }
-        else if (minDistance == distancePointRight)
-        {
-            mousePosition = closestPointRight;
-        }
-        else if (minDistance == distancePointTop)
-        {
-            mousePosition = closestPointTop;
-        }
-
-        transform.position = mousePosition;
+        
         transform.up = direction;
     }
-
-
-
 
     IEnumerator cloneBullet()
     {
@@ -106,4 +129,41 @@ public class Gun : MonoBehaviour
         muzzleFlashChildRenderer.enabled = false;
         muzzleFlashRenderer.enabled = false;
     }
+
+    private void OnDrawGizmos()
+    {
+        Vector3 objectPosition = BoundsLeft.transform.position;
+        Quaternion objectRotation = BoundsLeft.transform.rotation;
+        Vector3 objectScale = BoundsLeft.transform.lossyScale;
+
+        foreach (Vector2 point in BoundsLeft.GetComponent<PolygonCollider2D>().points)
+        {
+            // Convert from local space to world space considering rotation and scale
+            Vector3 worldPoint = objectPosition + objectRotation * Vector3.Scale(point, objectScale);
+            Gizmos.DrawSphere(worldPoint, 0.01f);
+        }
+
+        Vector3 objectPosition2 = BoundsRight.transform.position;
+        Quaternion objectRotation2 = BoundsRight.transform.rotation;
+        Vector3 objectScale2 = BoundsRight.transform.lossyScale;
+
+        foreach (Vector2 point in BoundsRight.GetComponent<PolygonCollider2D>().points)
+        {
+            // Convert from local space to world space considering rotation and scale
+            Vector3 worldPoint = objectPosition2 + objectRotation2 * Vector3.Scale(point, objectScale2);
+            Gizmos.DrawSphere(worldPoint, 0.01f);
+        }
+
+        Vector3 objectPosition3 = BoundsTop.transform.position;
+        Quaternion objectRotation3 = BoundsTop.transform.rotation;
+        Vector3 objectScale3 = BoundsTop.transform.lossyScale;
+
+        foreach (Vector2 point in BoundsTop.GetComponent<PolygonCollider2D>().points)
+        {
+            // Convert from local space to world space considering rotation and scale
+            Vector3 worldPoint = objectPosition3 + objectRotation3 * Vector3.Scale(point, objectScale3);
+            Gizmos.DrawSphere(worldPoint, 0.01f);
+        }
+    }
+
 }
