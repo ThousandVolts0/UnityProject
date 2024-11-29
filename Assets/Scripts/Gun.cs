@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Transactions;
+using TMPro;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -15,7 +18,6 @@ public class Gun : MonoBehaviour
     public GameObject bulletMuzzleFlash;
     public GameObject BoundsLeft;
     public GameObject BoundsRight;
-    public GameObject BoundsTop;
 
     [Range(0f, 1000f)] public float bulletSpeed = 10f;
     [Range(0f, 10f)] public float gunCooldown = 0.5f;
@@ -26,6 +28,21 @@ public class Gun : MonoBehaviour
     private float[] distanceLeftArray;
     private float[] distanceRightArray;
     private float[] distanceTopArray;
+    private float lerpFactor;
+    private float minDistance;
+    private float minDistanceLeft;
+    private float minDistanceRight;
+
+    private Rigidbody2D rigidbody;
+    private Vector3 mousePosition;
+
+    private Vector2[] Right;
+    private Vector2[] Left;
+    private Vector2 closestPointLeft;
+    private Vector2 closestPointRight;
+
+    private Vector2 direction = new Vector2(0,0);
+    private Vector3 targetPos = new Vector3(0,0,0);
 
     void Update()
     {
@@ -40,18 +57,18 @@ public class Gun : MonoBehaviour
     {
         distanceLeftArray = new float[BoundsLeft.GetComponent<PolygonCollider2D>().points.Length];
         distanceRightArray = new float[BoundsRight.GetComponent<PolygonCollider2D>().points.Length];
-        distanceTopArray = new float[BoundsTop.GetComponent<PolygonCollider2D>().points.Length];
+
+        rigidbody = Player.GetComponent<Rigidbody2D>();
     }
 
     void faceMouse()
     {
-        Vector3 mousePosition = Input.mousePosition;
+        mousePosition = Input.mousePosition;
         mousePosition.z = Mathf.Abs(Camera.main.transform.position.z - transform.position.z);
         mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
-        Vector2[] Left = BoundsLeft.GetComponent<PolygonCollider2D>().points;
-        Vector2[] Right = BoundsRight.GetComponent<PolygonCollider2D>().points;
-        Vector2[] Top = BoundsTop.GetComponent<PolygonCollider2D>().points;
+        Left = BoundsLeft.GetComponent<PolygonCollider2D>().points;
+        Right = BoundsRight.GetComponent<PolygonCollider2D>().points;
 
         for (int i = 0; i < Left.Length; i++)
         {
@@ -63,40 +80,34 @@ public class Gun : MonoBehaviour
             distanceRightArray[i] = Vector2.Distance(mousePosition, BoundsRight.transform.TransformPoint(Right[i]));
         }
 
-        for (int i = 0; i < Top.Length; i++)
-        {
-            distanceTopArray[i] = Vector2.Distance(mousePosition, BoundsTop.transform.TransformPoint(Top[i]));
-        }
+        minDistanceLeft = distanceLeftArray.Min();
+        minDistanceRight = distanceRightArray.Min();
 
-        Vector2 closestPointLeft = Left[Array.IndexOf(distanceLeftArray, distanceLeftArray.Min())];
-        Vector2 closestPointRight = Right[Array.IndexOf(distanceRightArray, distanceRightArray.Min())];
-        Vector2 closestPointTop = Top[Array.IndexOf(distanceTopArray, distanceTopArray.Min())];
+        closestPointLeft = Left[Array.IndexOf(distanceLeftArray, minDistanceLeft)];
+        closestPointRight = Right[Array.IndexOf(distanceRightArray, minDistanceRight)];
 
-        float minDistance = Mathf.Min(distanceLeftArray.Min(), distanceRightArray.Min(), distanceTopArray.Min());
+        minDistance = Mathf.Min(minDistanceLeft, minDistanceRight);
 
-        if (minDistance == distanceLeftArray.Min())
+        if (minDistance == minDistanceLeft)
         {
             //transform.position = BoundsLeft.transform.TransformPoint(closestPointLeft);
-            transform.position = Vector2.Lerp(transform.position, BoundsLeft.transform.TransformPoint(closestPointLeft), 0.3f);
+            targetPos = BoundsLeft.transform.TransformPoint(closestPointLeft);
         }
-        else if (minDistance == distanceRightArray.Min())
+        else if (minDistance == minDistanceRight)
         {
             //transform.position = BoundsRight.transform.TransformPoint(closestPointRight);
-            transform.position = Vector2.Lerp(transform.position, BoundsRight.transform.TransformPoint(closestPointRight), 0.3f);
+            
+            targetPos = BoundsRight.transform.TransformPoint(closestPointRight);
         }
-        else if (minDistance == distanceTopArray.Min())
-        {
-            //transform.position = BoundsTop.transform.TransformPoint(closestPointTop);
-            transform.position = Vector2.Lerp(transform.position, BoundsTop.transform.TransformPoint(closestPointTop), 0.3f);
-        }
-        
-       
-        Vector2 direction = (mousePosition - transform.position).normalized;
-        
+
+        float velocity = Mathf.Round(rigidbody.velocity.magnitude);
+
+        transform.position = Vector2.Lerp(transform.position, targetPos, 0.25f);
+        direction = (mousePosition - transform.position).normalized;
         transform.up = direction;
     }
 
-    IEnumerator cloneBullet()
+    IEnumerator cloneBullet()   
     {
         if (!hasCooldown)
         {
@@ -118,6 +129,7 @@ public class Gun : MonoBehaviour
             }
         }
     }
+
     IEnumerator toggleMuzzleFlash()
     {
         
@@ -130,40 +142,30 @@ public class Gun : MonoBehaviour
         muzzleFlashRenderer.enabled = false;
     }
 
-    private void OnDrawGizmos()
-    {
-        Vector3 objectPosition = BoundsLeft.transform.position;
-        Quaternion objectRotation = BoundsLeft.transform.rotation;
-        Vector3 objectScale = BoundsLeft.transform.lossyScale;
+    //private void OnDrawGizmos()
+    //{
+    //    Vector3 objectPosition = BoundsLeft.transform.position;
+    //    Quaternion objectRotation = BoundsLeft.transform.rotation;
+    //    Vector3 objectScale = BoundsLeft.transform.lossyScale;
 
-        foreach (Vector2 point in BoundsLeft.GetComponent<PolygonCollider2D>().points)
-        {
-            // Convert from local space to world space considering rotation and scale
-            Vector3 worldPoint = objectPosition + objectRotation * Vector3.Scale(point, objectScale);
-            Gizmos.DrawSphere(worldPoint, 0.01f);
-        }
+    //    foreach (Vector2 point in BoundsLeft.GetComponent<PolygonCollider2D>().points)
+    //    {
+    //        // Convert from local space to world space considering rotation and scale
+    //        Vector3 worldPoint = objectPosition + objectRotation * Vector3.Scale(point, objectScale);
+    //        Gizmos.DrawSphere(worldPoint, 0.01f);
+    //    }
 
-        Vector3 objectPosition2 = BoundsRight.transform.position;
-        Quaternion objectRotation2 = BoundsRight.transform.rotation;
-        Vector3 objectScale2 = BoundsRight.transform.lossyScale;
+    //    Vector3 objectPosition2 = BoundsRight.transform.position;
+    //    Quaternion objectRotation2 = BoundsRight.transform.rotation;
+    //    Vector3 objectScale2 = BoundsRight.transform.lossyScale;
 
-        foreach (Vector2 point in BoundsRight.GetComponent<PolygonCollider2D>().points)
-        {
-            // Convert from local space to world space considering rotation and scale
-            Vector3 worldPoint = objectPosition2 + objectRotation2 * Vector3.Scale(point, objectScale2);
-            Gizmos.DrawSphere(worldPoint, 0.01f);
-        }
+    //    foreach (Vector2 point in BoundsRight.GetComponent<PolygonCollider2D>().points)
+    //    {
+    //        // Convert from local space to world space considering rotation and scale
+    //        Vector3 worldPoint = objectPosition2 + objectRotation2 * Vector3.Scale(point, objectScale2);
+    //        Gizmos.DrawSphere(worldPoint, 0.01f);
+    //    }
 
-        Vector3 objectPosition3 = BoundsTop.transform.position;
-        Quaternion objectRotation3 = BoundsTop.transform.rotation;
-        Vector3 objectScale3 = BoundsTop.transform.lossyScale;
-
-        foreach (Vector2 point in BoundsTop.GetComponent<PolygonCollider2D>().points)
-        {
-            // Convert from local space to world space considering rotation and scale
-            Vector3 worldPoint = objectPosition3 + objectRotation3 * Vector3.Scale(point, objectScale3);
-            Gizmos.DrawSphere(worldPoint, 0.01f);
-        }
-    }
+    //}
 
 }
