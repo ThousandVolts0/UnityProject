@@ -381,26 +381,13 @@ GameObject:
   - component: {fileID: 494233243}
   - component: {fileID: 494233242}
   - component: {fileID: 494233241}
-  - component: {fileID: 494233240}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Bullet
-  m_TagString: Untagged
+  m_TagString: Bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &494233240
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 494233239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc5c8f1823e25b342a63766f1259e90a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!50 &494233241
 Rigidbody2D:
   serializedVersion: 4
@@ -5381,9 +5368,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 595155728}
+  - component: {fileID: 595155732}
   - component: {fileID: 595155731}
-  - component: {fileID: 595155730}
-  - component: {fileID: 595155729}
   m_Layer: 7
   m_Name: Gun
   m_TagString: Untagged
@@ -5406,44 +5392,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1052686747}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
---- !u!114 &595155729
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 595155727}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f6be4c4bb34a69488e720e0143fc738, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Player: {fileID: 1052686746}
-  bulletPrefab: {fileID: 494233239}
-  bulletMuzzleFlash: {fileID: 113945858}
-  BoundsLeft: {fileID: 1427424549}
-  BoundsRight: {fileID: 1263242296}
-  bulletSpeed: 20
-  gunCooldown: 0.5
---- !u!114 &595155730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 595155727}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f6be4c4bb34a69488e720e0143fc738, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Player: {fileID: 1052686746}
-  bulletPrefab: {fileID: 494233239}
-  bulletMuzzleFlash: {fileID: 113945858}
-  BoundsLeft: {fileID: 0}
-  BoundsRight: {fileID: 0}
-  bulletSpeed: 18.5
-  gunCooldown: 0.5
 --- !u!212 &595155731
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5496,6 +5444,25 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &595155732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595155727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f6be4c4bb34a69488e720e0143fc738, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Player: {fileID: 1052686746}
+  bulletPrefab: {fileID: 494233239}
+  bulletMuzzleFlash: {fileID: 113945858}
+  BoundsLeft: {fileID: 1427424549}
+  BoundsRight: {fileID: 1263242296}
+  bulletSpeed: 15
+  gunCooldown: 0.5
 --- !u!1 &877678522
 GameObject:
   m_ObjectHideFlags: 0
@@ -5680,7 +5647,7 @@ PolygonCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -5750,7 +5717,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
@@ -5871,7 +5838,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 328
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -6248,7 +6215,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 328
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -6493,7 +6460,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 384
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -6600,7 +6567,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1871587830}
   - component: {fileID: 1871587831}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Trail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6665,7 +6632,7 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Time: 0.05
-  m_PreviewTimeScale: 0.1
+  m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -6768,7 +6735,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 384
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
