@@ -15,16 +15,22 @@ public class Gun : MonoBehaviour
 {
     public GameObject player;
     public GameObject bulletPrefab;
+    
+    public GameObject muzzleFlash;
+    public GameObject muzzleFlashAttachment;
+    public CameraShake CameraShake;
 
     public GameObject boundsLeft;
     public GameObject boundsRight;
 
     [SerializeField] public float bulletSpeed = 10f;
     [SerializeField] public float gunCooldown = 0.5f;
+    [SerializeField] public float muzzleFlashLifetime = 0.5f;
 
-    private Vector2 mousePos;
-    private Vector2 targetPos;
     private Vector3 direction;
+
+    Vector3 targetPos;
+    Vector3 mousePos;
 
     bool gunHasCooldown = false;
 
@@ -32,10 +38,9 @@ public class Gun : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 mousePos = Input.mousePosition;
-        Vector3 targetPos = Camera.main.ScreenToWorldPoint(mousePos);
+        mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane));
 
-        if (Vector3.Distance(targetPos, boundsLeft.transform.position) < (Vector3.Distance(targetPos,boundsRight.transform.position)))
+        if (Vector3.Distance(mousePos, boundsLeft.transform.position) < (Vector3.Distance(mousePos, boundsRight.transform.position)))
         {
             gameObject.transform.position = Vector3.SmoothDamp(gameObject.transform.position, boundsLeft.transform.position, ref vel, 0.075f);
         }
@@ -44,10 +49,9 @@ public class Gun : MonoBehaviour
             gameObject.transform.position = Vector3.SmoothDamp(gameObject.transform.position, boundsRight.transform.position, ref vel, 0.075f);
         }
 
-        direction = (targetPos - transform.position).normalized;
-
-        float rot_z = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        gameObject.transform.rotation = Quaternion.Euler(0f, 0f, rot_z - 90);
+        Vector3 rotation = transform.position - mousePos;
+        float rot = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, rot + 90);
     }
 
     private void Update()
@@ -56,25 +60,39 @@ public class Gun : MonoBehaviour
         {
             Debug.Log("T");
             StartCoroutine(fireBullet());
+            StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
         }
     }
     private IEnumerator fireBullet()
     {
         gunHasCooldown = true;
 
-        GameObject activeBullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+        
+
+        GameObject activeBullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
+        GameObject activeMuzzleFlash = Instantiate(muzzleFlash, muzzleFlashAttachment.transform.position, activeBullet.transform.rotation, gameObject.transform);
+        activeMuzzleFlash.transform.localScale = new Vector2(2.5f, 0.75f);
+
+        Destroy(activeMuzzleFlash, muzzleFlashLifetime);
 
         Rigidbody2D bulletRb = activeBullet.GetComponent<Rigidbody2D>();
 
-        float rot_z = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        activeBullet.transform.rotation = Quaternion.Euler(0f, 0f, rot_z - 90);
+    
+
+        Vector3 bulletdirection = mousePos - activeBullet.transform.position;
+        Vector3 rotation = activeBullet.transform.position - mousePos;
+        float rot = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
+        activeBullet.transform.rotation = Quaternion.Euler(0, 0, rot + 90);
+
+        Debug.Log("TargetPos: " + targetPos.ToString());
+        Debug.Log("BulletDirection: " + bulletdirection.ToString());
 
         if (bulletRb != null)
         {
-            bulletRb.velocity = direction.normalized * bulletSpeed;
+            bulletRb.velocity = new Vector2(bulletdirection.x, bulletdirection.y).normalized * bulletSpeed;
         }
         else
-        {
+        {   
             Debug.Log("Bullet rigidbody not found.");
             Destroy(activeBullet);
             yield return null;
