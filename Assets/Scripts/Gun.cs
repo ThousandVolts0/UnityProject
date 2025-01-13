@@ -60,7 +60,25 @@ public class Gun : MonoBehaviour
         {
             Debug.Log("T");
             StartCoroutine(fireBullet());
-            StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
+            Rigidbody2D playerRigidbody = player.GetComponent<Rigidbody2D>();
+            if (playerRigidbody)
+            {
+                if (Mathf.Abs(playerRigidbody.velocity.x) > 0)
+                {
+                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.025f, 0.05f));
+                    Debug.Log("suii");
+                }
+                else
+                {
+                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
+                }
+            }
+            else
+            {
+                StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
+            }
+      
+
         }
     }
     private IEnumerator fireBullet()
