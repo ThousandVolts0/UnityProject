@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static UnityEditor.FilePathAttribute;
+using UnityEngine.UI;
 
 public class Gun : MonoBehaviour
 {
@@ -34,8 +35,18 @@ public class Gun : MonoBehaviour
     Vector3 mousePos;
 
     bool gunHasCooldown = false;
+    bool isReloading = false;
 
     private Vector3 vel = Vector3.zero;
+
+    [SerializeField] private int bulletCount;
+    [SerializeField] public int maxBulletCount;
+
+    [SerializeField] public float reloadTime;
+    [SerializeField] public float reloadAnimationTime;
+
+    public Text ammoCount;
+
 
     private void FixedUpdate()
     {
@@ -55,11 +66,29 @@ public class Gun : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, rot + 90);
     }
 
+    private void Start()
+    {
+        bulletCount = maxBulletCount;
+        ammoCount.text = "Ammo: " + maxBulletCount.ToString() + "/" + maxBulletCount.ToString();
+    }
+
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0) && !gunHasCooldown)
+        if (Input.GetMouseButtonDown(0) && !gunHasCooldown && !isReloading)
         {
-            Debug.Log("T");
+            
+            if (bulletCount > 0)
+            {
+                bulletCount--;
+            }
+            else
+            {
+                StartCoroutine(reload());
+                return;
+            }
+            ammoCount.text = "Ammo: " + bulletCount.ToString() + "/" + maxBulletCount.ToString();
+
+            Debug.Log("fired bullet");
             StartCoroutine(fireBullet());
             Rigidbody2D playerRigidbody = player.GetComponent<Rigidbody2D>();
             if (playerRigidbody)
@@ -77,9 +106,47 @@ public class Gun : MonoBehaviour
             {
                 StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.1f, 0.07f));
             }
+
       
 
         }
+    }
+    private IEnumerator reload()
+    {
+        isReloading = true;
+        
+        ammoCount.text = "Reloading.";
+
+        var state = 1;
+        for (float i = 0; i <= reloadTime;)
+        {
+            if (state == 1)
+            {
+                ammoCount.text = "Reloading.";
+            }
+            else if (state == 2)
+            {
+                ammoCount.text = "Reloading..";
+            }
+            else if (state == 3)
+            {
+                ammoCount.text = "Reloading...";
+            }
+
+            state += 1;
+            if (state > 3)
+            {
+                state = 1;
+            }
+
+            i += reloadAnimationTime;
+            Debug.Log("toast");
+            yield return new WaitForSeconds(reloadAnimationTime);
+        }
+        isReloading = false;
+        bulletCount = maxBulletCount;
+        ammoCount.text = "Ammo: " + bulletCount.ToString() + "/" + maxBulletCount.ToString();
+
     }
     private IEnumerator fireBullet()
     {
