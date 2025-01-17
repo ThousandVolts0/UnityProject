@@ -41,6 +41,6 @@ public class CameraMovement : MonoBehaviour
 
         targetPos = new Vector3(targetPosX, targetPosY, mainCamera.transform.position.z);
 
-        mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, targetPos, ref camVelocity, 0.2f);
+        mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, targetPos, ref camVelocity, 0.125f);
     }
 }
