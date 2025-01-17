@@ -1,66 +1,46 @@
 using UnityEngine;
 
-public class CameraFollow : MonoBehaviour
+public class CameraMovement : MonoBehaviour
 {
-    // Variables to set the boundaries for camera movement
-    [SerializeField] private float leftLimit;
-    [SerializeField] private float rightLimit;
-    [SerializeField] private float topLimit;
-    [SerializeField] private float bottomLimit;
+    public Transform playerPos;
+    public Camera mainCamera;
 
-    /*
-     * Left -4.15
-     * Right 10.25
-     * Top -1.65
-     * Bottom -1.65
-     * 
-     * Left2
-     * Right2
-     * Top2
-     * Bottom2
-     */
+    private Vector3 camVelocity = Vector3.zero;
+    private float targetPosX;
+    private float targetPosY;
+    private Vector3 targetPos;
 
-    // Reference to the player object for camera tracking
-    public Transform player;
-    public Vector2 positionOffset;
+    private float cameraHalfHeight;
+    private float cameraHalfWidth;
 
-    void Update()
+    public float offsetX = 0f;
+    public float offsetY = 0f;
+
+    public Transform borderR, borderL, borderU, borderD;
+
+    void Start()
     {
-        // Camera follows the player with an offset
-        Vector3 startPosition = transform.position;
-        Vector3 endPosition = player.transform.position;
-
-        endPosition.x += positionOffset.x;
-        endPosition.y += positionOffset.y;
-        endPosition.z = -10;
-
-        // Smooth transition using Lerp function
-        //transform.position = Vector3.Lerp(startPosition, endPosition, timeOffset * Time.deltaTime);
-        transform.position = new Vector3(endPosition.x,endPosition.y, endPosition.z);
-
-        // Clamping camera position within boundaries
-        transform.position = new Vector3(
-            Mathf.Clamp(transform.position.x, leftLimit, rightLimit),
-            Mathf.Clamp(transform.position.y, bottomLimit, topLimit),
-            transform.position.z
-        );
+        cameraHalfHeight = mainCamera.orthographicSize;
+        cameraHalfWidth = cameraHalfHeight * mainCamera.aspect;
     }
 
-    // Method to draw boundary lines in the Unity editor
-    private void OnDrawGizmos()
+    void FixedUpdate()
     {
-        Gizmos.color = Color.red;
+        if (playerPos == null) // Player is dead or not assigned
+        {
+            return;
+        }
 
-        // Draw top boundary line
-        Gizmos.DrawLine(new Vector2(leftLimit, topLimit), new Vector2(rightLimit, topLimit));
+        float borderLeftX = borderL.TransformPoint(Vector3.zero).x;
+        float borderRightX = borderR.TransformPoint(Vector3.zero).x;
+        float borderUpY = borderU.TransformPoint(Vector3.zero).y;
+        float borderDownY = borderD.TransformPoint(Vector3.zero).y;
 
-        // Draw right boundary line
-        Gizmos.DrawLine(new Vector2(rightLimit, topLimit), new Vector2(rightLimit, bottomLimit));
+        targetPosX = Mathf.Clamp(playerPos.position.x, (borderLeftX + cameraHalfWidth) + offsetX, (borderRightX - cameraHalfWidth) - offsetX);
+        targetPosY = Mathf.Clamp(playerPos.position.y, (borderDownY + cameraHalfHeight) + offsetY, (borderUpY - cameraHalfHeight) - offsetY);
 
-        // Draw bottom boundary line
-        Gizmos.DrawLine(new Vector2(rightLimit, bottomLimit), new Vector2(leftLimit, bottomLimit));
+        targetPos = new Vector3(targetPosX, targetPosY, mainCamera.transform.position.z);
 
-        // Draw left boundary line
-        Gizmos.DrawLine(new Vector2(leftLimit, bottomLimit), new Vector2(leftLimit, topLimit));
+        mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, targetPos, ref camVelocity, 0.2f);
     }
 }
