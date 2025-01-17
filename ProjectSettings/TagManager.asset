@@ -43,3 +43,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Sparks
+    uniqueID: 788486205
+    locked: 0

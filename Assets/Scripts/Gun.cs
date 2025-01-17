@@ -23,13 +23,14 @@ public class Gun : MonoBehaviour
     public GameObject boundsLeft;
     public GameObject boundsRight;
 
-    [SerializeField] public float bulletSpeed = 10f;
+    public float recoilStrength = 3.5f;
+
+    public float bulletSpeed = 10f;
     [SerializeField] public float gunCooldown = 0.5f;
     [SerializeField] public float muzzleFlashLifetime = 0.5f;
 
     private Vector3 direction;
 
-    Vector3 targetPos;
     Vector3 mousePos;
 
     bool gunHasCooldown = false;
@@ -65,17 +66,16 @@ public class Gun : MonoBehaviour
             {
                 if (Mathf.Abs(playerRigidbody.velocity.x) > 0)
                 {
-                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.025f, 0.05f));
-                    Debug.Log("suii");
+                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.04f, 0.04f));
                 }
                 else
                 {
-                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
+                    StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.1f, 0.07f));
                 }
             }
             else
             {
-                StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.12f, 0.065f));
+                StartCoroutine(CameraShake.Shake(Camera.main.transform, 0.1f, 0.07f));
             }
       
 
@@ -85,24 +85,21 @@ public class Gun : MonoBehaviour
     {
         gunHasCooldown = true;
 
-        
+        StartCoroutine(doRecoil());
 
         GameObject activeBullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
         GameObject activeMuzzleFlash = Instantiate(muzzleFlash, muzzleFlashAttachment.transform.position, activeBullet.transform.rotation, gameObject.transform);
-        activeMuzzleFlash.transform.localScale = new Vector2(2.5f, 0.75f);
+        activeMuzzleFlash.transform.localScale = new Vector2(2.5f, 1.25f);
 
         Destroy(activeMuzzleFlash, muzzleFlashLifetime);
 
         Rigidbody2D bulletRb = activeBullet.GetComponent<Rigidbody2D>();
-
-    
 
         Vector3 bulletdirection = mousePos - activeBullet.transform.position;
         Vector3 rotation = activeBullet.transform.position - mousePos;
         float rot = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
         activeBullet.transform.rotation = Quaternion.Euler(0, 0, rot + 90);
 
-        Debug.Log("TargetPos: " + targetPos.ToString());
         Debug.Log("BulletDirection: " + bulletdirection.ToString());
 
         if (bulletRb != null)
@@ -119,6 +116,12 @@ public class Gun : MonoBehaviour
         yield return new WaitForSeconds(gunCooldown);
 
         gunHasCooldown = false;
+    }
+
+    private IEnumerator doRecoil()
+    {
+        transform.Translate(-Vector2.up * Time.deltaTime * recoilStrength);
+        yield return null;
     }
 
 }
